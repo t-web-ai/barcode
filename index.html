@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Auto Barcode Generator</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      input {
+        padding: 5px;
+        margin: 5px;
+        width: 80px;
+      }
+      button {
+        padding: 6px 12px;
+      }
+      .barcode {
+        margin: 20px 0;
+        page-break-inside: avoid;
+      }
+      svg {
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Bulk Barcode Generator</h2>
+    <p>Enter range to generate serials (like S001–S100)</p>
+
+    <label>Prefix: <input type="text" id="prefix" value="S" /></label>
+    <label>Start #: <input type="number" id="start" value="1" /></label>
+    <label>End #: <input type="number" id="end" value="100" /></label>
+    <label>Pad Length: <input type="number" id="pad" value="3" /></label>
+    <button onclick="generateSerials()">Generate</button>
+
+    <div id="output"></div>
+
+    <script>
+      function generateSerials() {
+        const prefix = document.getElementById("prefix").value;
+        const start = parseInt(document.getElementById("start").value);
+        const end = parseInt(document.getElementById("end").value);
+        const pad = parseInt(document.getElementById("pad").value);
+        const output = document.getElementById("output");
+        output.innerHTML = "";
+
+        for (let i = start; i <= end; i++) {
+          const serial = prefix + String(i).padStart(pad, "0");
+
+          const div = document.createElement("div");
+          div.className = "barcode";
+
+          const label = document.createElement("p");
+          label.textContent = serial;
+          div.appendChild(label);
+
+          const svg = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "svg"
+          );
+          JsBarcode(svg, serial, {
+            format: "CODE128",
+            displayValue: true,
+            width: 2,
+            height: 50,
+          });
+          div.appendChild(svg);
+
+          output.appendChild(div);
+        }
+      }
+    </script>
+  </body>
+</html>
