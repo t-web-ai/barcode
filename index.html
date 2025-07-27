@@ -110,7 +110,9 @@
           const data = `${prefix}${i}`;
           const url = `https://barcode.orcascan.com/?type=code39&data=${encodeURIComponent(
             data
-          )}&text=${encodeURIComponent(data.split("").join(" "))}&format=png`;
+          )}&text=${encodeURIComponent(
+            data.split("").join(" ")
+          )}&format=png&fontsize=70`;
 
           const div = document.createElement("div");
           div.className = "barcode-item";
