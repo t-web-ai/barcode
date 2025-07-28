@@ -60,6 +60,7 @@
         }
       }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   </head>
   <body>
     <div>
@@ -93,7 +94,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <script>
-      function generateBarcodes() {
+      async function generateBarcodes() {
         const prefix = document.getElementById("prefix").value.trim();
         const start = parseInt(document.getElementById("start").value);
         const end = parseInt(document.getElementById("end").value);
@@ -114,12 +115,39 @@
             data.split("").join(" ")
           )}&format=png&fontsize=70&magin=0`;
 
-          const div = document.createElement("div");
-          div.className = "barcode-item";
-          div.innerHTML = `<img src="${url}" alt="${data}" />`;
-          barcodeContainer.appendChild(div);
+          try {
+            const result = await fetch(url);
+            const image = await result;
+            const div = document.createElement("div");
+            div.className = "barcode-item";
+            div.innerHTML = `<img src="${image.url}" alt="${data}" />`;
+            barcodeContainer.appendChild(div);
+          } catch (error) {
+            console.log(error);
+          }
         }
       }
+    </script>
+
+    <script>
+      window.onload = function () {
+        const element = document.getElementById("content");
+        const options = {
+          margin: 1,
+          filename: "my-document.pdf",
+          image: { type: "jpeg", quality: 0.98 },
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+        };
+
+        // Promise-based usage:
+        setTimeout(function () {
+          html2pdf().set(options).from(element).save();
+        }, 3000);
+
+        // Old monolithic-style usage:
+        // html2pdf(element, options);
+      };
     </script>
   </body>
 </html>
