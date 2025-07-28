@@ -243,7 +243,7 @@
             barcodeContainer.appendChild(div);
 
             // Add page break after every 6 items
-            if ((i - start + 1) % 6 === 0 && i !== end) {
+            if ((i - start + 1) % 5 === 0 && i !== end) {
               const pageBreak = document.createElement("div");
               pageBreak.className = "page-break";
               barcodeContainer.appendChild(pageBreak);
