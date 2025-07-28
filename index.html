@@ -94,7 +94,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <script>
+      let controller = null;
       async function generateBarcodes() {
+        if (controller) {
+          controller.abort();
+        }
+        controller = new AbortController();
         const prefix = document.getElementById("prefix").value.trim();
         const start = parseInt(document.getElementById("start").value);
         const end = parseInt(document.getElementById("end").value);
@@ -107,24 +112,23 @@
           return;
         }
 
-        for (let i = start; i <= end; i++) {
-          const data = `${prefix}${i}`;
-          const url = `https://barcode.orcascan.com/?type=code39&data=${encodeURIComponent(
-            data
-          )}&text=${encodeURIComponent(
-            data.split("").join(" ")
-          )}&format=png&fontsize=70&magin=0`;
-
-          try {
-            const result = await fetch(url);
+        try {
+          for (let i = start; i <= end; i++) {
+            const data = `${prefix}${i}`;
+            const url = `https://barcode.orcascan.com/?type=code39&data=${encodeURIComponent(
+              data
+            )}&text=${encodeURIComponent(
+              data.split("").join(" ")
+            )}&format=png&fontsize=70&magin=0`;
+            const result = await fetch(url, { signal: controller.signal });
             const image = await result;
             const div = document.createElement("div");
             div.className = "barcode-item";
             div.innerHTML = `<img src="${image.url}" alt="${data}" />`;
             barcodeContainer.appendChild(div);
-          } catch (error) {
-            console.log(error);
           }
+        } catch (error) {
+          console.log(error.message);
         }
       }
     </script>
