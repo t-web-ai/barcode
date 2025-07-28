@@ -24,13 +24,14 @@
 
       .barcode-item {
         width: 10cm;
-        height: 4cm;
+        height: 5cm;
         display: flex;
         align-items: center;
         justify-content: center;
         text-align: center;
         border: 1px dashed black;
-        margin: 20px auto;
+        margin: 10px auto;
+        padding-top: 1.5cm;
         page-break-inside: avoid;
         break-inside: avoid;
       }
@@ -168,10 +169,8 @@
       </table>
     </div>
 
-    <div style="visibility: hidden; overflow: hidden; height: 0">
-      <div class="barcodes" id="barcodes"></div>
-    </div>
-
+    <div style="visibility: hidden; overflow: hidden; height: 0"></div>
+    <div class="barcodes" id="barcodes"></div>
     <script>
       let controller = null;
       const barcode_count = document.getElementById("barcode-count");
