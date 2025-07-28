@@ -5,89 +5,164 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Async Barcode Generator with PDF Export</title>
     <style>
+      * {
+        box-sizing: border-box;
+      }
+
       body {
         font-family: Arial, sans-serif;
       }
+
       table {
         margin-bottom: 20px;
       }
+
       .barcodes {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        justify-content: center;
+        display: block;
+        padding: 10px;
       }
+
       .barcode-item {
-        text-align: center;
         width: 10cm;
         height: 4cm;
         display: flex;
         align-items: center;
         justify-content: center;
+        text-align: center;
         border: 1px dashed black;
-        padding-top: 1cm;
-        box-sizing: border-box;
+        margin: 20px auto;
+        page-break-inside: avoid;
+        break-inside: avoid;
       }
+
       .barcode-item img {
         max-width: 100%;
         max-height: 100%;
         object-fit: contain;
       }
+
+      .page-break {
+        page-break-after: always;
+        break-after: page;
+        height: 0;
+        margin: 0;
+        padding: 0;
+      }
+
       @media print {
+        .page-break {
+          display: block;
+        }
+
+        .barcode-item {
+          page-break-inside: avoid !important;
+          break-inside: avoid !important;
+        }
+
         body * {
           visibility: hidden;
         }
+
         .barcodes,
         .barcodes * {
           visibility: visible;
         }
+
         .barcodes {
           position: absolute;
           left: 0;
           top: 0;
-          padding-top: 25px;
           width: 100%;
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-          justify-content: center;
-        }
-        .barcode-item {
-          page-break-inside: avoid;
-          break-inside: avoid;
         }
       }
+
+      .barcode-count {
+        color: black;
+        padding: 10px 20px;
+        margin-left: 5px;
+        font-size: 3rem;
+        text-align: center;
+        border-radius: 5px;
+      }
+      .flex {
+        display: flex;
+        gap: 5px;
+      }
+      .flex-column {
+        flex-direction: column;
+      }
+      .justify-content-center {
+        justify-content: center;
+        align-items: center;
+      }
+      input,
+      button {
+        font-size: 20px;
+        flex-grow: 1;
+        border: none;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: -5px 5px gray;
+        background-color: white;
+      }
+      button:active {
+        transform: translate(-4px, 4px);
+        box-shadow: 0 0;
+      }
+      td {
+        font-size: 20px;
+        padding-top: 5px;
+      }
+      #main {
+        background-color: #eee;
+        border-radius: 20px;
+        padding: 20px 0;
+      }
     </style>
-    <!-- html2pdf bundle -->
+
+    <!-- html2pdf.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   </head>
   <body>
-    <div>
+    <div class="flex justify-content-center flex-column" id="main">
+      <div class="barcode-count">
+        <span id="barcode-count">0</span>
+      </div>
       <table>
         <tr>
           <td>Prefix</td>
+        </tr>
+        <tr>
           <td><input type="text" id="prefix" value="P1-250706-" /></td>
         </tr>
         <tr>
           <td>Start</td>
+        </tr>
+        <tr>
           <td><input type="number" id="start" value="1" /></td>
         </tr>
         <tr>
           <td>End</td>
+        </tr>
+        <tr>
           <td><input type="number" id="end" value="10" /></td>
         </tr>
         <tr>
           <td>Actions</td>
+        </tr>
+        <tr>
           <td>
-            <button onclick="generateBarcodes()">Generate</button>
-            <button
-              onclick="saveToPDF(document.getElementById('barcodes'))"
-              id="pdfBtn"
-              disabled
-            >
-              To PDF
-            </button>
-            <button onclick="window.print()">Print</button>
+            <div class="flex">
+              <button onclick="generateBarcodes()">Generate</button>
+              <button
+                onclick="saveToPDF(document.getElementById('barcodes'))"
+                id="pdfBtn"
+                disabled
+              >
+                To PDF
+              </button>
+              <button onclick="window.print()">Print</button>
+            </div>
           </td>
         </tr>
       </table>
@@ -97,8 +172,8 @@
 
     <script>
       let controller = null;
-
-      // Fetch image URL and convert to base64 data URL
+      const barcode_count = document.getElementById("barcode-count");
+      // Convert image URL to base64
       async function toDataURL(url, signal) {
         const response = await fetch(url, { signal });
         if (!response.ok) throw new Error("Network response was not ok");
@@ -111,7 +186,7 @@
         });
       }
 
-      // Wait for all images inside container to load
+      // Wait for all images in container to load
       function waitForImages(container) {
         const images = container.querySelectorAll("img");
         return Promise.all(
@@ -129,22 +204,21 @@
       }
 
       async function generateBarcodes() {
-        // Abort previous ongoing fetches
+        barcode_count.innerText = parseInt(barcode_count.innerText);
+        if (controller) controller.abort("New generation started.");
 
-        if (controller) {
-          controller.abort("New process started; abort previous.");
-        }
         controller = new AbortController();
         const prefix = document.getElementById("prefix").value.trim();
         const start = parseInt(document.getElementById("start").value);
         const end = parseInt(document.getElementById("end").value);
         const barcodeContainer = document.getElementById("barcodes");
         const pdfBtn = document.getElementById("pdfBtn");
+
         pdfBtn.disabled = true;
-        barcodeContainer.innerHTML = ""; // Clear old barcodes
+        barcodeContainer.innerHTML = "";
 
         if (isNaN(start) || isNaN(end) || start > end) {
-          alert("Invalid start or end values");
+          alert("Invalid start or end value.");
           return;
         }
 
@@ -157,18 +231,22 @@
               data.split("").join(" ")
             )}&format=png&fontsize=70&magin=0`;
 
-            // Fetch barcode image as base64
             const base64Img = await toDataURL(url, controller.signal);
 
-            // Create div and img
             const div = document.createElement("div");
             div.className = "barcode-item";
             div.innerHTML = `<img src="${base64Img}" alt="${data}" />`;
-
+            barcode_count.innerText = parseInt(barcode_count.innerText) + 1;
             barcodeContainer.appendChild(div);
+
+            // Add page break after every 6 items
+            if ((i - start + 1) % 6 === 0 && i !== end) {
+              const pageBreak = document.createElement("div");
+              pageBreak.className = "page-break";
+              barcodeContainer.appendChild(pageBreak);
+            }
           }
 
-          // Wait until images fully load before generating PDF
           await waitForImages(barcodeContainer);
           pdfBtn.disabled = false;
         } catch (error) {
@@ -176,21 +254,22 @@
             console.log("Previous fetch aborted.");
           } else {
             console.error("Error generating barcodes:", error);
-            alert("An error occurred generating barcodes.");
+            alert("An error occurred during barcode generation.");
           }
         }
       }
-      function saveToPDF(barcodeContainer) {
-        // Generate PDF from container
+
+      function saveToPDF(container) {
         html2pdf()
           .set({
-            margin: 0.5,
+            margin: [0, 0],
             filename: "barcodes.pdf",
             image: { type: "jpeg", quality: 1 },
-            html2canvas: { scale: 5 },
-            jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
+            pagebreak: { mode: ["avoid-all", "css"] },
           })
-          .from(barcodeContainer)
+          .from(container)
           .save();
       }
     </script>
