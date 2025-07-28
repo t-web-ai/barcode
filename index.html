@@ -204,7 +204,7 @@
       }
 
       async function generateBarcodes() {
-        barcode_count.innerText = parseInt(barcode_count.innerText);
+        barcode_count.innerText = parseInt(0);
         if (controller) controller.abort("New generation started.");
 
         controller = new AbortController();
