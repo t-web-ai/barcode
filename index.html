@@ -207,7 +207,6 @@
       }
 
       async function generateBarcodes() {
-        barcode_count.innerText = parseInt(0);
         if (controller) controller.abort("New generation started.");
 
         controller = new AbortController();
@@ -216,7 +215,7 @@
         const end = parseInt(document.getElementById("end").value);
         const barcodeContainer = document.getElementById("barcodes");
         const pdfBtn = document.getElementById("pdfBtn");
-
+        barcode_count.innerText = parseInt(start);
         pdfBtn.disabled = true;
         barcodeContainer.innerHTML = "";
 
@@ -252,6 +251,7 @@
 
           await waitForImages(barcodeContainer);
           pdfBtn.disabled = false;
+          barcode_count.innerText = "Completed";
         } catch (error) {
           if (error.name === "AbortError") {
             console.log("Previous fetch aborted.");
